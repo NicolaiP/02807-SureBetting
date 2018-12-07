@@ -5,6 +5,7 @@ from numpy.random import choice
 from bet_database import SqlMaker  # noqa: E402
 from surebets_calculator import surebet  # noqa: E402
 import threading
+import platform
 
 
 # Exit dialog if the user hits Ctrl + c
@@ -104,7 +105,10 @@ def updateBalances(database):
 
 
 def startCrawler():
-    bashCommand = 'run.sh crawler.py'
+    if platform.system()=='Linux':
+        bashCommand = 'gnome-terminal -x spark-submit crawler.py'
+    else:
+        bashCommand = 'spark-submit crawler.py'
     os.system(bashCommand)
 
 
