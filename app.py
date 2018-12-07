@@ -102,7 +102,7 @@ def startCrawler():
     if platform.system() == 'Linux':
         bashCommand = 'gnome-terminal -x spark-submit crawler.py'
     else:
-        bashCommand = 'spark-submit crawler.py'
+        bashCommand = 'start spark-submit crawler.py'
     os.system(bashCommand)
 
 
