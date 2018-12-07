@@ -30,4 +30,5 @@ Linux install:
     - for me [export SPARK_HOME=/opt/apache-spark/spark-2.3.2-bin-hadoop2.7]
 5) add java/bin and spark/bin path in ~/.bashrc
     - for me [export PATH=$PATH:$JAVA_HOME/bin:$SPARK_HOME/bin]
-6) apply changes in ~/.bashrc by runiing the command [source ~/.bashrc]
+6) add python version to be used by pyspark to ~/.bashrc [export PYSPARK_PYTHON=python3] 
+7) apply changes in ~/.bashrc by runiing the command [source ~/.bashrc]
