@@ -12,33 +12,18 @@ def loadPage(url):
         url_pool = urllib3.PoolManager()
         page_response = url_pool.request('GET', url)
 
-        # Using the html parser to store it
-        # page_content = BeautifulSoup(page_response.data, "html.parser")
-
+        # Strips the HTML and returns only part consisting match data
         try:
             return page_response.data.split(b'class="TheList Collapsable NextMatchesList "', 1)[1].split(b'class="MatchNextInfo"')[:-1]
         except Exception as e:
             print(e)
 
 
-def temploadPage(url):
-        # Fetching all content from url
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        url_pool = urllib3.PoolManager()
-        page_response = url_pool.request('GET', url)
-
-        # Using the html parser to store it
-        # page_content = BeautifulSoup(page_response.data, "html.parser")
-        temp = []
-        r = page_response.data.split(b'class="TheList Collapsable NextMatchesList "', 1)[1].split(b'class="MatchNextInfo"')[:-1]
-        for i in r:
-            temp.append(len(i))
-        return temp
-
-
 def getMatchInfo(match):
+    # Splits at newline
     lines = match.split(b'\n')
 
+    # Creates output variables
     matchid = ""
     names = []
     bet1 = ""
@@ -48,28 +33,38 @@ def getMatchInfo(match):
     bookie2 = ""
     bookie3 = ""
 
+    # Runs a loop parsing each line for relevant data
     for id, line in enumerate(lines):
         if b'\t\t\t<span itemprop="summary" class="MDxEventName">' in line:
+            # Gets the names of each player/team
             names = line.decode('UTF-8')[49:-8].split(' - ')
         elif b'" data-matchId=' in line:
+            # Gets the unique match ID
             matchid = re.search('data-vocabulary.org/Event" data-matchId="(.*)">',
                                 line.decode('UTF-8')).group(1)
         elif b'"Outcome Outcome1"' in line:
+            # Gets the bookie name for outcome 1
             bookie1 = re.search('<span class="BM OTBookie">(.*)</span></span>',
                                 lines[id+1].decode('UTF-8')).group(1)
+            # Gets the odds value for outcome 1
             bet1 = re.search('<span class="Odds">(.*)</span><span class="OutcomeName">',
                              lines[id+1].decode('UTF-8')).group(1)
         elif b'"Outcome Outcome1"' in line:
+            # Gets the bookie name for outcome 2
             bookie2 = re.search('<span class="BM OTBookie">(.*)</span></span>',
                                 lines[id+1].decode('UTF-8')).group(1)
+            # Gets the odds value for outcome 2
             bet2 = re.search('<span class="Odds">(.*)</span><span class="OutcomeName">',
                              lines[id+1].decode('UTF-8')).group(1)
         elif b'"Outcome Outcome3"' in line:
+            # Gets the bookie name for outcome 3
             bookie3 = re.search('<span class="BM OTBookie">(.*)</span></span>',
                                 lines[id+1].decode('UTF-8')).group(1)
+            # Gets the odds value for outcome 3
             bet3 = re.search('<span class="Odds">(.*)</span><span class="OutcomeName">',
                              lines[id+1].decode('UTF-8')).group(1)
 
+    # Returns the parsed data
     return {'matchid': matchid, 'names': names, 'odds': [bet1, bet2, bet3], 'bookies': [bookie1, bookie2, bookie3]}
 
 
@@ -79,14 +74,15 @@ if __name__ == "__main__":
     # Crawler setup #
     #################
 
+    # Sets up Spark context
     conf = SparkConf().setAppName("crawler").setMaster("local[*]")
     sc = SparkContext(conf=conf)
 
+    # loads database
     database = SqlMaker("SureBetDataBase.sqlite")
     database.create_tables()
 
-    # url_pool = urllib3.PoolManager()
-
+    # Defines urls
     url_volley = 'https://www.betbrain.dk/live-center/volleyball/'
     url_tennis = 'https://www.betbrain.dk/live-center/tennis/'
     url_football = 'https://www.betbrain.dk/live-center/football/'
@@ -97,7 +93,7 @@ if __name__ == "__main__":
     url_table_tennis = 'https://www.betbrain.dk/live-center/table-tennis/'
     url_cricket = 'https://www.betbrain.dk/live-center/cricket/'
 
-    # urlsRDD = sc.parallelize([url_football])
+    # Puts the urls into the spark context
     urlsRDD = sc.parallelize([url_football, url_tennis, url_volley, url_basket, url_ice, url_badminton,
                               url_handball, url_table_tennis, url_cricket])
     urlsRDD.persist(StorageLevel.MEMORY_ONLY)
@@ -105,34 +101,29 @@ if __name__ == "__main__":
     ################
     # Crawler loop #
     ################
-    a = True
-    while a:
-        # a = False
+
+    while True:
+        # Reads the status [0] = is app running, [1] = has x seconds passed (crawlerInterval)
         serverStatus = database.getserverStatus()[0]
         if not serverStatus[0]:
+            # Terminates crawler if app has stopped
             print("Terminating crawler")
             break
         if serverStatus[1]:
-            # try:
+            try:
                 print("Attemts scrape")
 
-                # responseRDD = urlsRDD.map(temploadPage)
-                # responses = responseRDD.collect()
-                # print(responses)
-
+                # Gets HTML for each url
                 responseRDD = urlsRDD.map(loadPage).filter(lambda r: isinstance(r, (list, )))
+                
+                # Collects all matches in one list - [[...], [...], ...] -> [...]
                 responses = responseRDD.collect()
-                # print(responses)
+                matchesRDD = sc.parallelize([match for sublist in responses for match in sublist])
 
-                responseRDD = sc.parallelize([match for sublist in responses for match in sublist])
-                # print(responseRDD.collect()[-3][:5000])
-
-                # responseRDD = sc.parallelize(loadPage(url))
-
-                matchesRDD = responseRDD.filter(lambda response: len(response) < 6000)
-
+                # Parses HTML
                 matchinfo = matchesRDD.map(getMatchInfo)
 
+                # Stores parsed data in in databases
                 for info in matchinfo.collect():
                     if info['odds'][1] != "":
                         oddsId3 = info['matchid']+"-3-"+info['names'][1]
@@ -158,7 +149,7 @@ if __name__ == "__main__":
                         oddsId1 = "NULL"
                     database.addAllBets(int(info['matchid']), oddsId1, oddsId2, oddsId3)
                 database.updateserverStatus(True, False)
-            # except Exception as e:  # noqa
-            #     print(e)
+            except Exception as e:
+                print(e)
         else:
             time.sleep(5)
