@@ -16,12 +16,6 @@ def exitDialog():
         print("ending")
         database = SqlMaker("SureBetDataBase.sqlite")
         database.updateserverStatus(False, False)
-        time.sleep(5)
-        database.delete_AllBets()
-        database.resetAllBookies()
-        database.delete_AllOdds()
-        database.delete_AllBuffers()
-        database.delete_AllWins()
         sys.exit()
     else:
         pass
@@ -105,7 +99,7 @@ def updateBalances(database):
 
 
 def startCrawler():
-    if platform.system()=='Linux':
+    if platform.system() == 'Linux':
         bashCommand = 'gnome-terminal -x spark-submit crawler.py'
     else:
         bashCommand = 'spark-submit crawler.py'
