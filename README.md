@@ -16,12 +16,19 @@ Linux install:
     -check with [java -version] if you have java installed
 2) locate java file path by running "readlink -f $(which java)"
     -This returned the path "/usr/lib/jvm/java-8-openjdk-amd64/jre/bin" for med
-3) add the path to the jre folder to ~/.bashrc as JAVA_HOME
+3) add the path to the jre folder to ~/.bashrc (you can use [nano ~/.bashrc] to edit the file) as JAVA_HOME
     - for me [export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre] 
-4) add bin folder to path in ~/.bashrc
-- for me [export PATH=$PATH:$JAVA_HOME/bin]
 
 -install Apache Spark and set up path
 1) download Apache Spark 2.3.2 using [wget http://dk.mirrors.quenda.co/apache/spark/spark-2.3.2/spark-2.3.2-bin-hadoop2.7.tgz]
     - visit https://spark.apache.org/downloads.html for other mirrors and different versions
-2)
+2) make a directory for Apache Spark
+    - I created the directory [sudo mkdir /opt/apache-spark]
+3) unzip the downloaded file into the directory
+    - for me [tar xvzf spark-2.3.2-bin-hadoop2.7.tgz -C /opt/apache-spark]
+4) add the path to the unzipped folder to ~/.bashrc as SPARK_HOME
+    - for me [export SPARK_HOME=/opt/apache-spark/spark-2.3.2-bin-hadoop2.7]
+5) add java/bin and spark/bin path in ~/.bashrc
+    - for me [export PATH=$PATH:$JAVA_HOME/bin:$SPARK_HOME/bin]
+6) add python version to be used by pyspark to ~/.bashrc [export PYSPARK_PYTHON=python3] 
+7) apply changes in ~/.bashrc by runiing the command [source ~/.bashrc]
