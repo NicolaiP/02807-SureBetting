@@ -1,16 +1,28 @@
 # 02807-SureBetting
 Computational Tools For Data Science Project by Joakim Edin, Aske Bluhme Klok, Nicolai Pedersen
 
+To run the application:
+    - Make sure you have installed java and Apache Spark
+    - Run the python script App.py
+    - Another terminal opens. This is the web crawler.
+    - In the main terminal you can see how much money you make
+    - To end the application press ctrl+c in the main window
+
 
 Requirements:
-Python 3 (Python 3.7)
-Java SDK 8 (java version "1.8.0_161")
-Spark 2 (Apache Spark 2.3.2)
+-Python 3 (Python 3.7)
+-Java SDK 8 (java version "1.8.0_161")
+-Spark 2 (Apache Spark 2.3.2)
 
 [In brackets is the specific version used for developing the software]
 
-Linux install:
 
+Installing the application:
+    The installation of Apache spark follows these youtube videos:
+        - [https://www.youtube.com/watch?v=4PlvpoTAbYQ] Set up java
+        - [https://www.youtube.com/watch?v=iarn1KHeouc] Set up Spark
+    Alternatively, you can follow these steps
+Linux install:
 -install java and set up path
 1) sudo apt install openjdk-8-jre-headless (unless you have already installed java)
     -check with [java -version] if you have java installed
