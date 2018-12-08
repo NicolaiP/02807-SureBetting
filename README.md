@@ -2,6 +2,7 @@
 Computational Tools For Data Science Project by Joakim Edin, Aske Bluhme Klok, Nicolai Pedersen
 
 To run the application:
+
     - Make sure you have installed java and Apache Spark
     - Run the python script App.py
     - Another terminal opens. This is the web crawler.
