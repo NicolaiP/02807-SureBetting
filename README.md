@@ -1,6 +1,13 @@
 # 02807-SureBetting
 Computational Tools For Data Science Project by Joakim Edin, Aske Bluhme Klok, Nicolai Pedersen
 
+To run the MapReduce analysis on historical data:
+    
+    - Go to the folder historical Data
+    - run the script AnalyzeOldSoccerData.py
+    - make sure that the folder contains another folder called plots
+
+
 To run the application:
 
     - Make sure you have installed java and Apache Spark
